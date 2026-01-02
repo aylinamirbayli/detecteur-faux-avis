@@ -1,1 +1,4 @@
-
+```{r}
+data <- read.csv("Données/faux avis dataset.csv", stringsAsFactors = FALSE)
+head(data)
+```
