@@ -119,6 +119,7 @@ predire_avis(texte_test, modele_logit, dtm2)
 ```
 
 ##Structure du projet
+
 detecteur-faux-avis/
 │
 ├── Donnees/
@@ -127,6 +128,7 @@ detecteur-faux-avis/
 ├── detecteur_faux_avis.Rmd
 ├── app.R (optionnel – interface Shiny)
 ├── README.md
+
 
 ## Conclusion
 
