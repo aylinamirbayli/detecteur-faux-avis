@@ -118,18 +118,6 @@ texte_test <- "This product is amazing, I recommend it to everyone!!!"
 predire_avis(texte_test, modele_logit, dtm2)
 ```
 
-## Structure du projet
-
-detecteur-faux-avis/
-│
-├── Donnees/
-│   └── fake_reviews_dataset.csv
-│
-├── detecteur_faux_avis.Rmd
-├── app.R (optionnel – interface Shiny)
-├── README.md
-
-
 ## Conclusion
 
 Ce projet avait pour objectif de développer un outil capable de distinguer automatiquement les avis authentiques des avis faux à partir de leur contenu textuel. En combinant des techniques de traitement du langage naturel et un modèle de régression logistique, nous avons montré qu’il est possible d’obtenir des performances satisfaisantes, avec une précision et un rappel supérieurs à 80 %.
