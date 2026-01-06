@@ -118,7 +118,7 @@ texte_test <- "This product is amazing, I recommend it to everyone!!!"
 predire_avis(texte_test, modele_logit, dtm2)
 ```
 
-##Structure du projet
+## Structure du projet
 
 detecteur-faux-avis/
 │
