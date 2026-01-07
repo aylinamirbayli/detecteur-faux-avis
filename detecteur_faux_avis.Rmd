@@ -9,8 +9,9 @@ output: html_document
 library(tm)
 ```
 
+## 1. Importation et exploration des données
+
 ```{r}
-# Si ton fichier s'appelle "fake reviews dataset.csv" avec des espaces
 data <- read.csv("data/fake reviews dataset.csv", stringsAsFactors=FALSE)
 ```
 
@@ -34,6 +35,8 @@ data[data$label == "OR", "text_"][1]
 
 Les avis frauduleux ont tendance à utiliser un vocabulaire très positif, générique et peu informatif.
 
+## 2. Prétraitement du texte
+
 ```{r}
 # Créer un corpus de texte
 corpus <- VCorpus(VectorSource(data$text_))
@@ -49,6 +52,8 @@ corpus <- tm_map(corpus, stripWhitespace)
 as.character(corpus[[1]])
 ```
 
+## 3. Création de la matrice documents-termes
+
 ```{r}
 # Créer la matrice documents-termes
 dtm <- DocumentTermMatrix(corpus)
@@ -63,6 +68,8 @@ dtm2 <- removeSparseTerms(dtm, 0.99)
 
 dtm2
 ```
+
+## 4. Préparation des données pour la modélisation
 
 ```{r}
 # Variable cible binaire
@@ -80,8 +87,11 @@ X <- as.data.frame(as.matrix(dtm2))
 dim(X)
 ```
 
+## 5. Division en ensembles d'entraînement et de test
+
 ```{r}
-set.seed(123)  # pour la reproductibilité
+set.seed(123) 
+# pour la reproductibilité
 
 n <- nrow(X)
 train_index <- sample(1:n, size = 0.8 * n)
@@ -97,6 +107,8 @@ dim(X_train)
 dim(X_test)
 ```
 
+## 6. Entraînement du modèle de régression logistique
+
 ```{r}
 # Modèle de régression logistique
 modele_logit <- glm(
@@ -105,6 +117,8 @@ modele_logit <- glm(
   family = binomial
 )
 ```
+
+## 7. Prédiction et évaluation du modèle
 
 ```{r}
 proba_test <- predict(modele_logit, X_test, type = "response")
@@ -120,6 +134,8 @@ mean(y_pred == y_test)
 ```
 
 Le modèle de régression logistique permet de détecter les faux avis avec une accuracy de 81,6 %. Il identifie correctement une grande partie des avis frauduleux tout en maintenant une bonne capacité à reconnaître les avis authentiques.
+
+### 7.1 Métriques de performance détaillées
 
 ```{r}
 cm <- table(Prediction = y_pred, Reel = y_test)
@@ -138,6 +154,8 @@ data.frame(accuracy, precision, recall, f1)
 ```
 
 Sur l'échantillon test, la régression logistique atteint une accuracy de 0,816, ce qui signifie que 81,6 % des avis sont correctement classés (vrai vs faux). La precision = 0,806 indique que, parmi les avis prédits comme faux, environ 80,6 % sont réellement faux (donc ~19,4 % sont des faux positifs). Le recall = 0,830 montre que le modèle détecte environ 83 % des faux avis (donc ~17 % échappent à la détection). Le F1-score = 0,818 confirme un bon compromis entre la capacité à repérer les avis frauduleux et la limitation des erreurs de classification.
+
+## 8. Fonction de prédiction pour de nouveaux avis
 
 ```{r}
 # --- Fonction de prédiction (option A : logit) ---
@@ -168,6 +186,8 @@ predire_avis <- function(texte, modele, dtm_ref, seuil = 0.5) {
 }
 ```
 
+### 8.1 Test de la fonction de prédiction
+
 ```{r}
 set.seed(1)
 ex_vrai <- data[data$label == "CG", "text_"][1]
@@ -178,6 +198,8 @@ predire_avis(ex_faux, modele_logit, dtm2)
 ```
 
 Le modèle renvoie une probabilité d'être faux (OR). Si cette probabilité dépasse 0,5, on classe l'avis comme faux ; sinon, on le classe comme authentique. Ici, l'avis CG a une probabilité faible (0,15) donc il est classé authentique, alors que l'avis OR a une probabilité élevée (0,77) donc il est classé faux.
+
+## 9. Interprétation du modèle : analyse des coefficients
 
 ```{r}
 # Coefficients du modèle
@@ -201,12 +223,14 @@ coefficients positifs → augmentent la probabilité d'un avis faux (mots plutô
 coefficients négatifs → augmentent la probabilité d'un avis authentique (mots plus concrets liés au produit comme sturdy, instructions, plastic).
 Donc le modèle distingue surtout vocabulaire générique vs détails spécifiques.
 
+### 9.1 Test sur un nouvel avis
+
 ```{r}
 texte_test <- "This product is amazing, I recommend it to everyone!!!"
 predire_avis(texte_test, modele_logit, dtm2)
 ```
 
-## Conclusion
+## 10. Conclusion
 
 Dans ce projet, nous avons cherché à déterminer s'il est possible de détecter automatiquement les avis faux à partir du contenu textuel.
 
@@ -220,7 +244,18 @@ Ce projet illustre ainsi comment des méthodes simples de NLP peuvent contribuer
 
 Des améliorations futures pourraient inclure des modèles plus avancés (TF-IDF, modèles pénalisés ou méthodes de deep learning) afin d'augmenter encore la précision du système.
 
+## 11. Sauvegarde des modèles
+
 ```{r}
+# Créer le dossier results s'il n'existe pas
+if (!dir.exists("results")) {
+  dir.create("results")
+  print("Dossier 'results' créé avec succès")
+}
+
+# Sauvegarder les modèles
 saveRDS(modele_logit, "results/modele_logit.rds")
 saveRDS(dtm2, "results/dtm_ref.rds")
+
+print("Modèles sauvegardés avec succès !")
 ```
