@@ -6,7 +6,7 @@ Outil de détection automatique des **avis faux vs authentiques** à partir du t
 
 ## Contexte et motivation
 
-Les avis en ligne influencent fortement les décisions d’achat des consommateurs. Cependant, de nombreux avis publiés sur les plateformes peuvent être falsifiés (avis sponsorisés, bots, manipulation des notes), ce qui réduit la confiance des utilisateurs.
+Les avis en ligne influencent fortement les décisions d'achat des consommateurs. Cependant, de nombreux avis publiés sur les plateformes peuvent être falsifiés (avis sponsorisés, bots, manipulation des notes), ce qui réduit la confiance des utilisateurs.
 
 Ce projet vise à montrer comment des **méthodes statistiques et de data science** peuvent être utilisées pour **détecter automatiquement les avis faux** à partir de leur contenu textuel.
 
@@ -23,12 +23,12 @@ Ce projet vise à montrer comment des **méthodes statistiques et de data scienc
 - Construire un outil de **classification binaire** (faux / authentique)
 - Appliquer des techniques de **traitement du texte (NLP)** :
   - nettoyage du texte
-  - création d’une matrice documents-termes
+  - création d'une matrice documents-termes
 - Implémenter un **modèle de régression logistique**
 - Évaluer les performances du modèle
 - Interpréter les mots les plus discriminants
 - Rendre le projet **reproductible et documenté sur GitHub**
-- (Optionnel) Développer une **interface Shiny** pour tester des avis en direct
+- Développer une **interface Shiny** pour tester des avis en direct
 
 ---
 
@@ -43,11 +43,11 @@ Chaque observation correspond à un avis en ligne.
 ### Variables principales
 
 - `category` : catégorie du produit  
-- `rating` : note associée à l’avis  
+- `rating` : note associée à l'avis  
 - `label` :
   - `CG` = avis authentique  
   - `OR` = avis faux  
-- `text_` : texte de l’avis  
+- `text_` : texte de l'avis  
 
 ---
 
@@ -61,7 +61,7 @@ Le projet suit les étapes suivantes :
    - suppression de la ponctuation et des chiffres
    - suppression des stopwords
 3. Vectorisation du texte :
-   - création d’une matrice documents-termes (DTM)
+   - création d'une matrice documents-termes (DTM)
    - suppression des termes trop rares
 4. Construction de la variable cible
 5. Séparation des données :
@@ -71,7 +71,7 @@ Le projet suit les étapes suivantes :
 7. Évaluation du modèle
 8. Interprétation des coefficients
 9. Prédiction sur de nouveaux avis
-10. (Optionnel) Interface Shiny
+10. Création d'une interface Shiny interactive
 
 ---
 
@@ -79,22 +79,22 @@ Le projet suit les étapes suivantes :
 
 Le modèle utilisé est une **régression logistique**, adaptée aux problèmes de classification binaire.
 
-- Variable cible :
+- **Variable cible** :
   - `1` = avis faux (OR)
   - `0` = avis authentique (CG)
-- Variables explicatives :
+- **Variables explicatives** :
   - fréquences des mots présents dans les avis
 
 ---
 
 ## Résultats
 
-### Performances sur l’échantillon de test
+### Performances sur l'échantillon de test
 
-- Accuracy ≈ **81 %**
-- Precision ≈ **0.81**
-- Recall ≈ **0.83**
-- F1-score ≈ **0.82**
+- **Accuracy** ≈ 81,6 %
+- **Precision** ≈ 0,806
+- **Recall** ≈ 0,830
+- **F1-score** ≈ 0,818
 
 Le modèle présente de bonnes performances pour distinguer les avis faux des avis authentiques.
 
@@ -109,19 +109,76 @@ Le modèle distingue principalement le **vocabulaire générique** des **détail
 
 ---
 
-## Utilisation
+## Structure du projet
+
+```
+detecteur-faux-avis/
+├── data/
+│   └── fake_reviews_dataset.csv
+├── detecteur_faux_avis.Rmd
+├── app.R (application Shiny)
+├── results/
+│   ├── modele_logit.rds
+│   └── dtm_ref.rds
+└── README.md
+```
+
+---
+
+## Installation et utilisation
+
+### Prérequis
+
+- R version 4.0 ou supérieure
+- Packages : `tm`, `shiny`
+
+### Installation des packages
+
+```r
+install.packages(c("tm", "shiny"))
+```
+
+### Exécution du projet
+
+1. Cloner le repository
+2. Placer le fichier de données dans le dossier `data/`
+3. Ouvrir le fichier `detecteur_faux_avis.Rmd` dans RStudio
+4. Exécuter le code chunk par chunk ou knitter le document complet
 
 ### Exemple de prédiction
 
 ```r
+# Charger les modèles sauvegardés
+modele_logit <- readRDS("results/modele_logit.rds")
+dtm2 <- readRDS("results/dtm_ref.rds")
+
+# Tester un nouvel avis
 texte_test <- "This product is amazing, I recommend it to everyone!!!"
 predire_avis(texte_test, modele_logit, dtm2)
 ```
 
+### Lancer l'application Shiny
+
+```r
+# Depuis RStudio
+shiny::runApp("app.R")
+
+# Ou directement depuis la console
+source("app.R")
+```
+
+---
+
 ## Conclusion
 
-Ce projet avait pour objectif de développer un outil capable de distinguer automatiquement les avis authentiques des avis faux à partir de leur contenu textuel. En combinant des techniques de traitement du langage naturel et un modèle de régression logistique, nous avons montré qu’il est possible d’obtenir des performances satisfaisantes, avec une précision et un rappel supérieurs à 80 %.
+Ce projet avait pour objectif de développer un outil capable de distinguer automatiquement les avis authentiques des avis faux à partir de leur contenu textuel. En combinant des techniques de traitement du langage naturel et un modèle de régression logistique, nous avons montré qu'il est possible d'obtenir des performances satisfaisantes, avec une précision et un rappel supérieurs à 80 %.
 
-L’analyse des coefficients du modèle met en évidence des différences lexicales claires entre les avis faux, souvent plus vagues et génériques, et les avis authentiques, qui contiennent davantage de détails concrets liés au produit.  
+L'analyse des coefficients du modèle met en évidence des différences lexicales claires entre les avis faux, souvent plus vagues et génériques, et les avis authentiques, qui contiennent davantage de détails concrets liés au produit.
 
+---
 
+## Auteur
+**AMIRBAYLI Jeyla**  
+**SEVIMLI Burak**  
+**AMIRBAYLI Aylin**  
+Projet d'analyse de données 
