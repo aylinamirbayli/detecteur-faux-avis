@@ -9,15 +9,15 @@ output: html_document
 library(tm)
 ```
 
-
 ```{r}
-data <- read.csv("data/raw/fake_reviews_dataset.csv")
-head(data)
+# Si ton fichier s'appelle "fake reviews dataset.csv" avec des espaces
+data <- read.csv("data/fake reviews dataset.csv", stringsAsFactors=FALSE)
 ```
 
 ```{r}
 str(data)
 ```
+
 ```{r}
 table(data$label)
 ```
@@ -34,8 +34,6 @@ data[data$label == "OR", "text_"][1]
 
 Les avis frauduleux ont tendance à utiliser un vocabulaire très positif, générique et peu informatif.
 
-
-
 ```{r}
 # Créer un corpus de texte
 corpus <- VCorpus(VectorSource(data$text_))
@@ -50,6 +48,7 @@ corpus <- tm_map(corpus, stripWhitespace)
 # Vérifier le résultat sur un texte
 as.character(corpus[[1]])
 ```
+
 ```{r}
 # Créer la matrice documents-termes
 dtm <- DocumentTermMatrix(corpus)
@@ -64,6 +63,7 @@ dtm2 <- removeSparseTerms(dtm, 0.99)
 
 dtm2
 ```
+
 ```{r}
 # Variable cible binaire
 y <- ifelse(data$label == "OR", 1, 0)
@@ -71,6 +71,7 @@ y <- ifelse(data$label == "OR", 1, 0)
 # Vérification
 table(y)
 ```
+
 ```{r}
 # Conversion de la matrice documents-termes en data frame
 X <- as.data.frame(as.matrix(dtm2))
@@ -111,7 +112,7 @@ y_pred <- ifelse(proba_test > 0.5, 1, 0)
 ```
 
 ```{r}
-table(Prediction = y_pred, Réel = y_test)
+table(Prediction = y_pred, Reel = y_test)
 ```
 
 ```{r}
@@ -119,10 +120,6 @@ mean(y_pred == y_test)
 ```
 
 Le modèle de régression logistique permet de détecter les faux avis avec une accuracy de 81,6 %. Il identifie correctement une grande partie des avis frauduleux tout en maintenant une bonne capacité à reconnaître les avis authentiques.
-
-```{r}
-table(Prediction = y_pred, Réel = y_test)
-```
 
 ```{r}
 cm <- table(Prediction = y_pred, Reel = y_test)
@@ -139,7 +136,8 @@ accuracy  <- mean(y_pred == y_test)
 
 data.frame(accuracy, precision, recall, f1)
 ```
-Sur l’échantillon test, la régression logistique atteint une accuracy de 0,816, ce qui signifie que 81,6 % des avis sont correctement classés (vrai vs faux). La precision = 0,806 indique que, parmi les avis prédits comme faux, environ 80,6 % sont réellement faux (donc ~19,4 % sont des faux positifs). Le recall = 0,830 montre que le modèle détecte environ 83 % des faux avis (donc ~17 % échappent à la détection). Le F1-score = 0,818 confirme un bon compromis entre la capacité à repérer les avis frauduleux et la limitation des erreurs de classification.
+
+Sur l'échantillon test, la régression logistique atteint une accuracy de 0,816, ce qui signifie que 81,6 % des avis sont correctement classés (vrai vs faux). La precision = 0,806 indique que, parmi les avis prédits comme faux, environ 80,6 % sont réellement faux (donc ~19,4 % sont des faux positifs). Le recall = 0,830 montre que le modèle détecte environ 83 % des faux avis (donc ~17 % échappent à la détection). Le F1-score = 0,818 confirme un bon compromis entre la capacité à repérer les avis frauduleux et la limitation des erreurs de classification.
 
 ```{r}
 # --- Fonction de prédiction (option A : logit) ---
@@ -168,7 +166,6 @@ predire_avis <- function(texte, modele, dtm_ref, seuil = 0.5) {
     prediction = ifelse(classe == 1, "FAUX (OR)", "VRAI (CG)")
   )
 }
-
 ```
 
 ```{r}
@@ -179,7 +176,8 @@ ex_faux <- data[data$label == "OR", "text_"][1]
 predire_avis(ex_vrai, modele_logit, dtm2)
 predire_avis(ex_faux, modele_logit, dtm2)
 ```
-Le modèle renvoie une probabilité d’être faux (OR). Si cette probabilité dépasse 0,5, on classe l’avis comme faux ; sinon, on le classe comme authentique. Ici, l’avis CG a une probabilité faible (0,15) donc il est classé authentique, alors que l’avis OR a une probabilité élevée (0,77) donc il est classé faux.
+
+Le modèle renvoie une probabilité d'être faux (OR). Si cette probabilité dépasse 0,5, on classe l'avis comme faux ; sinon, on le classe comme authentique. Ici, l'avis CG a une probabilité faible (0,15) donc il est classé authentique, alors que l'avis OR a une probabilité élevée (0,77) donc il est classé faux.
 
 ```{r}
 # Coefficients du modèle
@@ -197,9 +195,10 @@ top_vrai <- sort(coef_mod, decreasing = FALSE)[1:20]
 top_fake
 top_vrai
 ```
+
 Les coefficients montrent quels mots poussent le modèle vers FAUX (OR) ou VRAI (CG) :
-coefficients positifs → augmentent la probabilité d’un avis faux (mots plutôt vagues/nuancés comme maybe, however, instead).
-coefficients négatifs → augmentent la probabilité d’un avis authentique (mots plus concrets liés au produit comme sturdy, instructions, plastic).
+coefficients positifs → augmentent la probabilité d'un avis faux (mots plutôt vagues/nuancés comme maybe, however, instead).
+coefficients négatifs → augmentent la probabilité d'un avis authentique (mots plus concrets liés au produit comme sturdy, instructions, plastic).
 Donc le modèle distingue surtout vocabulaire générique vs détails spécifiques.
 
 ```{r}
@@ -207,16 +206,21 @@ texte_test <- "This product is amazing, I recommend it to everyone!!!"
 predire_avis(texte_test, modele_logit, dtm2)
 ```
 
-Conclusion
-Dans ce projet, nous avons cherché à déterminer s’il est possible de détecter automatiquement les avis faux à partir du contenu textuel.
-À l’aide de techniques de traitement automatique du langage (NLP) et d’un modèle de régression logistique, nous avons transformé les avis en variables numériques (matrice documents-termes), puis entraîné un classifieur capable de distinguer avis authentiques (CG) et avis faux (OR).
-Les résultats montrent que le modèle obtient de bonnes performances (accuracy ≈ 82 %, F1-score ≈ 0,82), ce qui indique qu’une grande partie des avis peut être correctement classée uniquement à partir du texte.
-L’analyse des coefficients met en évidence que les avis faux utilisent davantage un vocabulaire vague et générique, tandis que les avis authentiques contiennent plus de détails concrets liés au produit.
+## Conclusion
+
+Dans ce projet, nous avons cherché à déterminer s'il est possible de détecter automatiquement les avis faux à partir du contenu textuel.
+
+À l'aide de techniques de traitement automatique du langage (NLP) et d'un modèle de régression logistique, nous avons transformé les avis en variables numériques (matrice documents-termes), puis entraîné un classifieur capable de distinguer avis authentiques (CG) et avis faux (OR).
+
+Les résultats montrent que le modèle obtient de bonnes performances (accuracy ≈ 82 %, F1-score ≈ 0,82), ce qui indique qu'une grande partie des avis peut être correctement classée uniquement à partir du texte.
+
+L'analyse des coefficients met en évidence que les avis faux utilisent davantage un vocabulaire vague et générique, tandis que les avis authentiques contiennent plus de détails concrets liés au produit.
+
 Ce projet illustre ainsi comment des méthodes simples de NLP peuvent contribuer à la lutte contre les avis trompeurs, avec des applications concrètes pour les plateformes en ligne, les entreprises et les consommateurs.
-Des améliorations futures pourraient inclure des modèles plus avancés (TF-IDF, modèles pénalisés ou méthodes de deep learning) afin d’augmenter encore la précision du système.
+
+Des améliorations futures pourraient inclure des modèles plus avancés (TF-IDF, modèles pénalisés ou méthodes de deep learning) afin d'augmenter encore la précision du système.
 
 ```{r}
 saveRDS(modele_logit, "results/modele_logit.rds")
 saveRDS(dtm2, "results/dtm_ref.rds")
 ```
-
