@@ -6,7 +6,7 @@ Outil de détection automatique des **avis faux vs authentiques** à partir du t
 
 ## Contexte et motivation
 
-Les avis en ligne influencent fortement les décisions d'achat des consommateurs. Cependant, de nombreux avis publiés sur les plateformes peuvent être falsifiés (avis sponsorisés, bots, manipulation des notes), ce qui réduit la confiance des utilisateurs.
+Les avis en ligne influencent fortement les décisions d'achat des consommateurs. Cependant, de nombreux avis peuvent être falsifiés, ce qui réduit la confiance des utilisateurs.
 
 Ce projet vise à montrer comment des **méthodes statistiques et de data science** peuvent être utilisées pour **détecter automatiquement les avis faux** à partir de leur contenu textuel.
 
@@ -20,108 +20,80 @@ Ce projet vise à montrer comment des **méthodes statistiques et de data scienc
 
 ## Objectifs du projet
 
-- Construire un outil de **classification binaire** (faux / authentique)
-- Appliquer des techniques de **traitement du texte (NLP)** :
-  - nettoyage du texte
-  - création d'une matrice documents-termes
-- Implémenter un **modèle de régression logistique**
+- Construire un outil de classification binaire (faux / authentique)
+- Appliquer des techniques de traitement du texte (NLP)
+- Implémenter un modèle de régression logistique
 - Évaluer les performances du modèle
-- Interpréter les mots les plus discriminants
-- Rendre le projet **reproductible et documenté sur GitHub**
-- Développer une **interface Shiny** pour tester des avis en direct
+- Développer une application Shiny interactive
+- Rendre le projet reproductible et documenté
 
 ---
 
 ## Données
 
-### Source des données
+**Source** : Kaggle (Fake Reviews Dataset)
 
-Les données proviennent de **Kaggle** (Fake Reviews Dataset).
-
-Chaque observation correspond à un avis en ligne.
-
-### Variables principales
-
+**Variables principales** :
 - `category` : catégorie du produit  
-- `rating` : note associée à l'avis  
-- `label` :
-  - `CG` = avis authentique  
-  - `OR` = avis faux  
-- `text_` : texte de l'avis  
+- `rating` : note de l'avis  
+- `label` : `CG` (authentique) ou `OR` (faux)  
+- `text_` : contenu textuel de l'avis
+
+Le jeu de données est équilibré (50% CG / 50% OR).
 
 ---
 
 ## Méthodologie
 
-Le projet suit les étapes suivantes :
-
-1. Chargement et exploration des données
-2. Nettoyage du texte :
-   - passage en minuscules
-   - suppression de la ponctuation et des chiffres
-   - suppression des stopwords
-3. Vectorisation du texte :
-   - création d'une matrice documents-termes (DTM)
-   - suppression des termes trop rares
-4. Construction de la variable cible
-5. Séparation des données :
-   - 80 % apprentissage
-   - 20 % test
-6. Modélisation par régression logistique
-7. Évaluation du modèle
-8. Interprétation des coefficients
-9. Prédiction sur de nouveaux avis
-10. Création d'une interface Shiny interactive
-
----
-
-## Modèle
-
-Le modèle utilisé est une **régression logistique**, adaptée aux problèmes de classification binaire.
-
-- **Variable cible** :
-  - `1` = avis faux (OR)
-  - `0` = avis authentique (CG)
-- **Variables explicatives** :
-  - fréquences des mots présents dans les avis
+1. **Prétraitement du texte** : nettoyage, suppression des stopwords, tokenisation
+2. **Vectorisation** : création d'une matrice documents-termes (DTM)
+3. **Modélisation** : régression logistique
+4. **Évaluation** : accuracy, precision, recall, F1-score
+5. **Interprétation** : analyse des coefficients discriminants
+6. **Déploiement** : application Shiny interactive
 
 ---
 
 ## Résultats
 
-### Performances sur l'échantillon de test
+### Performances (seuil = 0.5)
 
-- **Accuracy** ≈ 81,6 %
-- **Precision** ≈ 0,806
-- **Recall** ≈ 0,830
-- **F1-score** ≈ 0,818
+| Métrique | Valeur |
+|----------|--------|
+| Accuracy | 81.6% |
+| Precision | 80.6% |
+| Recall | 83.0% |
+| F1-score | 81.8% |
 
-Le modèle présente de bonnes performances pour distinguer les avis faux des avis authentiques.
+### Optimisation du seuil
+
+Dans l'application finale, nous utilisons un **seuil de 0.7** (au lieu de 0.5) pour :
+- Réduire les faux positifs (éviter de pénaliser des avis authentiques)
+- Améliorer la précision
+- Offrir une flexibilité via un curseur interactif
 
 ---
 
-## Interprétation des résultats
+## Interprétation
 
-- Les **coefficients positifs** sont associés à des mots plutôt vagues ou génériques (ex. *maybe, however, instead*), caractéristiques des avis faux.
-- Les **coefficients négatifs** correspondent à des mots plus concrets et descriptifs liés au produit (ex. *sturdy, instructions, plastic*), souvent présents dans les avis authentiques.
+**Avis faux** : vocabulaire vague et générique (*maybe, however, instead*)  
+**Avis authentiques** : détails concrets sur le produit (*sturdy, instructions, plastic*)
 
-Le modèle distingue principalement le **vocabulaire générique** des **détails spécifiques**.
+Le modèle distingue le vocabulaire générique des détails spécifiques.
 
 ---
 
 ## Structure du projet
-
 ```
 detecteur-faux-avis/
 ├── data/
-│   └── fake_reviews_dataset.csv
-├── detecteur_faux_avis.Rmd
-├── app.R (application Shiny)
-├── results/
-│   ├── modele_logit.rds
-│   └── dtm_ref.rds
+│   └── fake reviews dataset.csv
+├── detecteur_faux_avis.Rmd     # Analyse et entraînement du modèle
+├── app.R                        # Application Shiny
 └── README.md
 ```
+
+**Note** : Les modèles entraînés (`modele_logit.rds` et `dtm_ref.rds`) sont générés localement en exécutant le fichier `.Rmd` et ne sont pas inclus dans le repository.
 
 ---
 
@@ -129,56 +101,61 @@ detecteur-faux-avis/
 
 ### Prérequis
 
-- R version 4.0 ou supérieure
+- R version 4.0+
 - Packages : `tm`, `shiny`
-
-### Installation des packages
-
 ```r
 install.packages(c("tm", "shiny"))
 ```
 
-### Exécution du projet
+### Étapes
 
-1. Cloner le repository
-2. Placer le fichier de données dans le dossier `data/`
-3. Ouvrir le fichier `detecteur_faux_avis.Rmd` dans RStudio
-4. Exécuter le code chunk par chunk ou knitter le document complet
-
-### Exemple de prédiction
-
-```r
-# Charger les modèles sauvegardés
-modele_logit <- readRDS("results/modele_logit.rds")
-dtm2 <- readRDS("results/dtm_ref.rds")
-
-# Tester un nouvel avis
-texte_test <- "This product is amazing, I recommend it to everyone!!!"
-predire_avis(texte_test, modele_logit, dtm2)
+1. **Cloner le repository**
+```bash
+git clone https://github.com/aylinamirbayili/detecteur-faux-avis.git
+cd detecteur-faux-avis
 ```
 
-### Lancer l'application Shiny
+2. **Placer les données**  
+Télécharger le dataset et le placer dans `data/fake reviews dataset.csv`
 
+3. **Entraîner le modèle**  
+Ouvrir `detecteur_faux_avis.Rmd` dans RStudio et exécuter tous les chunks
+
+4. **Lancer l'application**
 ```r
-# Depuis RStudio
 shiny::runApp("app.R")
-
-# Ou directement depuis la console
-source("app.R")
 ```
+
+---
+
+## Utilisation de l'application Shiny
+
+L'application permet de :
+- Saisir un avis à analyser
+- Ajuster le seuil de décision (0 à 1)
+- Obtenir une prédiction avec probabilités détaillées
+
+**Exemples d'avis à tester** :
+
+Avis potentiellement faux :
+> "This product is absolutely amazing! Best purchase ever! Everyone should buy this! Five stars!"
+
+Avis potentiellement authentique :
+> "The instructions were clear and assembly took about 30 minutes. The plastic feels sturdy but the screws could be better quality."
 
 ---
 
 ## Conclusion
 
-Ce projet avait pour objectif de développer un outil capable de distinguer automatiquement les avis authentiques des avis faux à partir de leur contenu textuel. En combinant des techniques de traitement du langage naturel et un modèle de régression logistique, nous avons montré qu'il est possible d'obtenir des performances satisfaisantes, avec une précision et un rappel supérieurs à 80 %.
+Ce projet démontre qu'il est possible de détecter les avis frauduleux avec une précision satisfaisante (>80%) en utilisant le contenu textuel et des techniques de machine learning classiques.
 
-L'analyse des coefficients du modèle met en évidence des différences lexicales claires entre les avis faux, souvent plus vagues et génériques, et les avis authentiques, qui contiennent davantage de détails concrets liés au produit.
 
 ---
 
-## Auteur
+## Auteurs
+
 **AMIRBAYLI Jeyla**  
 **SEVIMLI Burak**  
 **AMIRBAYLI Aylin**  
-Projet d'analyse de données 
+
+Projet d'analyse de données
