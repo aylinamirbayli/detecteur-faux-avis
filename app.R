@@ -31,7 +31,7 @@ dtm_ref <- readRDS(path_dtm)
 # =========================
 # Fonction de prédiction (robuste)
 # =========================
-predire_avis <- function(texte, modele, dtm_ref, seuil = 0.5) {
+predire_avis <- function(texte, modele, dtm_ref, seuil = 0.7) {
 
   # 1) Nettoyage texte
   corp_new <- VCorpus(VectorSource(texte))
@@ -128,7 +128,7 @@ ui <- fluidPage(
         label = "Seuil de décision :",
         min = 0,
         max = 1,
-        value = 0.5,
+        value = 0.7,
         step = 0.05
       ),
 
