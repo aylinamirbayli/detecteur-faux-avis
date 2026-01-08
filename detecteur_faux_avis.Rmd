@@ -162,7 +162,7 @@ Sur l'échantillon test, la régression logistique atteint une accuracy de 0,816
 
 ```{r}
 # --- Fonction de prédiction (option A : logit) ---
-predire_avis <- function(texte, modele, dtm_ref, seuil = 0.5) {
+predire_avis <- function(texte, modele, dtm_ref, seuil = 0.7) {
 
   # 1) Nettoyage texte (même pipeline que l'entraînement)
   corp_new <- VCorpus(VectorSource(texte))
@@ -243,9 +243,21 @@ Les résultats montrent que le modèle obtient de bonnes performances (accuracy 
 
 L'analyse des coefficients met en évidence que les avis faux utilisent davantage un vocabulaire vague et générique, tandis que les avis authentiques contiennent plus de détails concrets liés au produit.
 
-Ce projet illustre ainsi comment des méthodes simples de NLP peuvent contribuer à la lutte contre les avis trompeurs, avec des applications concrètes pour les plateformes en ligne, les entreprises et les consommateurs.
+### Optimisation du seuil de décision
 
-Des améliorations futures pourraient inclure des modèles plus avancés (TF-IDF, modèles pénalisés ou méthodes de deep learning) afin d'augmenter encore la précision du système.
+Bien que le seuil standard soit de 0.5 pour l'évaluation du modèle, nous avons choisi d'utiliser un seuil de 0.7 dans l'application finale pour les raisons suivantes :
+
+1. **Réduction des faux positifs** : Il est préférable de laisser passer quelques avis frauduleux plutôt que de sanctionner à tort des avis authentiques, ce qui aurait un impact négatif sur la confiance des utilisateurs et pourrait nuire injustement à des clients honnêtes.
+
+2. **Compromis précision/rappel** : Un seuil plus élevé améliore la précision au détriment du rappel, ce qui est approprié dans un contexte de modération d'avis où la priorité est d'éviter les erreurs de classification d'avis légitimes.
+
+3. **Flexibilité** : L'application Shiny permet à l'utilisateur d'ajuster le seuil selon ses besoins via un curseur interactif, offrant ainsi une solution adaptable à différents contextes d'utilisation.
+
+Ce choix illustre l'importance d'adapter les modèles de machine learning aux contraintes métier et aux coûts relatifs des différents types d'erreurs, plutôt que de se limiter aux valeurs par défaut.
+
+### Perspectives
+
+Ce projet illustre ainsi comment des méthodes simples de NLP peuvent contribuer à la lutte contre les avis trompeurs, avec des applications concrètes pour les plateformes en ligne, les entreprises et les consommateurs.
 
 ## 11. Sauvegarde des modèles
 
