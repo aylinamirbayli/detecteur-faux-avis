@@ -1,6 +1,7 @@
 # Application Shiny - Détecteur de faux avis
 # Auteur: AMIRBAYLI Jeyla, SEVIMLI Burak, AMIRBAYLI Aylin
 
+
 library(shiny)
 library(tm)
 
