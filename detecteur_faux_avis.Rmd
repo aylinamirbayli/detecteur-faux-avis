@@ -1,6 +1,9 @@
 ---
 title: "analyse de donnée"
-author: "AMIRBAYLI Jeyla" "SEVIMLI Burak" "AMIRBAYLI Aylin"
+author:
+  - "AMIRBAYLI Jeyla"
+  - "SEVIMLI Burak"
+  - "AMIRBAYLI Aylin"
 date: "2026-01-03"
 output: html_document
 ---
