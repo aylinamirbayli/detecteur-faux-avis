@@ -257,7 +257,7 @@ Ce choix illustre l'importance d'adapter les modèles de machine learning aux co
 
 ### Perspectives
 
-Ce projet illustre ainsi comment des méthodes simples de NLP peuvent contribuer à la lutte contre les avis trompeurs, avec des applications concrètes pour les plateformes en ligne, les entreprises et les consommateurs.
+Ce projet illustre ainsi comment des méthodes simples de NLP peuvent contribuer à la détection automatique de faux avis avec des performances satisfaisantes. Plusieurs améliorations pourraient être envisagées pour renforcer le modèle : l'utilisation de pondérations TF-IDF, l'exploration de modèles plus complexes (Random Forest, réseaux de neurones), l'ajout de features textuelles supplémentaires (sentiment, longueur), et l'adaptation du système à d'autres langues comme le français.
 
 ## 11. Sauvegarde des modèles
 
