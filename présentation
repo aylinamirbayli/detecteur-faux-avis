@@ -1,0 +1,151 @@
+---
+title: "Détecteur de faux avis en ligne"
+author: "AMIRBAYLI Jeyla, SEVIMLI Burak, AMIRBAYLI Aylin"
+date: "13 janvier 2026"
+output: ioslides_presentation
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+## Détection automatique de faux avis
+
+### Analyse de texte (NLP) et régression logistique sous R
+
+**Objectif :**  
+Classer automatiquement des avis en ligne en deux catégories :  
+- Avis authentiques (CG)  
+- Avis frauduleux (OR)
+
+**Outils :** R, R Markdown, NLP (tm), régression logistique
+
+## Problématique
+
+**Peut-on prédire automatiquement si un avis en ligne est faux ou
+authentique uniquement à partir de son texte ?**
+
+### Approche proposée
+
+- Utilisation de techniques de **traitement du langage naturel (NLP)**
+- Modèle de **classification binaire** : authentique vs frauduleux
+- Développement d'une **application interactive** pour tester le modèle
+
+## Données utilisées
+
+### Source et structure
+
+- Données issues de **Kaggle** (Fake Reviews Dataset)
+- Chaque observation correspond à un avis en ligne
+
+### Variables principales
+
+- `text_` : contenu textuel de l'avis
+- `label` : `CG` = authentique / `OR` = faux
+
+### Caractéristiques
+
+- Jeu de données **équilibré** entre avis authentiques et frauduleux
+- **Séparation** : 80% entraînement / 20% test
+
+## Exemples d'avis : authentique vs faux
+
+### Avis authentique (CG)
+
+- Contient des **détails concrets** sur le produit
+- Mentionne l'utilisation réelle et l'expérience personnelle
+- Ton généralement neutre ou nuancé
+
+> "The instructions were clear and assembly took about 30 minutes.  
+> The plastic feels sturdy but the screws could be better quality."
+
+### Avis frauduleux (OR)
+
+- Langage **très général** et peu descriptif
+- Ton excessivement positif
+- Peu ou pas de détails spécifiques
+
+> "This product is amazing and works perfectly.  
+> I highly recommend it to everyone!"
+
+## Pipeline NLP : du texte aux données
+
+### Prétraitement du texte
+
+- Passage en **minuscules**
+- Suppression de la **ponctuation** et des **chiffres**
+- Suppression des **stopwords** (mots peu informatifs)
+- Suppression des **espaces multiples**
+
+### Vectorisation
+
+- **Document-Term Matrix (DTM)** : lignes = avis, colonnes = mots
+- Réduction avec `removeSparseTerms()` → **444 mots** conservés
+- Conversion en data.frame pour la modélisation
+- Variable cible : `1` = frauduleux (OR), `0` = authentique (CG)
+
+## Modèle et résultats
+
+### Régression logistique
+
+- Estime la **probabilité** qu'un avis soit frauduleux (entre 0 et 1)
+- Modèle **simple et interprétable**
+- Adapté aux données textuelles vectorisées
+
+### Performances sur l'échantillon de test
+
+- **Accuracy** : 81,6%
+- **Precision** : 0,806
+- **Recall** : 0,830
+- **F1-score** : 0,818
+
+## Optimisation du seuil de décision
+
+### Pourquoi 0.7 au lieu de 0.5 ?
+
+**Choix stratégique :**  
+- Seuil standard = 0.5  
+- Seuil optimisé = **0.7** dans l'application
+
+**Justifications :**  
+- Réduction des **faux positifs** (avis authentiques classés faux)
+- Meilleure expérience utilisateur
+- Compromis précision/rappel adapté au contexte
+
+**Impact :**  
+- Moins d'avis authentiques sanctionnés à tort
+- Légère baisse du rappel (acceptable)
+
+## Démonstration : Application Shiny
+
+### Outil interactif développé
+
+**Fonctionnalités :**  
+- Saisie d'un avis à analyser  
+- Ajustement du seuil via curseur (0 à 1)  
+- Prédiction en temps réel  
+- Affichage des probabilités détaillées
+
+**Technologies :**  
+- R Shiny pour l'interface  
+- Modèle de régression logistique pré-entraîné  
+- Prétraitement NLP automatique
+
+**Utilisation :**  
+- Interface simple et intuitive  
+- Accessible via navigateur web
+
+## Conclusion et perspectives
+
+### Bilan
+
+- Détection automatique de faux avis **possible** avec >80% de précision
+- NLP + régression logistique = approche **simple mais efficace**
+- **Application Shiny développée** et fonctionnelle
+- Code **reproductible** disponible sur GitHub
+
+### Perspectives d'amélioration
+
+- Pondération **TF-IDF** au lieu de fréquences simples
+- Modèles plus avancés (Random Forest, réseaux de neurones)
+- Support multilingue (français notamment)
+- Ajout de features textuelles (sentiment, longueur, etc.)
