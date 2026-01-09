@@ -147,14 +147,22 @@ Avis potentiellement authentique :
 
 ## Conclusion
 
-Ce projet démontre qu'il est possible de détecter les avis frauduleux avec une précision satisfaisante (>80%) en utilisant le contenu textuel et des techniques de machine learning classiques.L'approche par régression logistique offre des résultats encourageants tout en restant simple et interprétable.
+Ce projet démontre qu'il est possible de détecter les avis frauduleux avec une précision satisfaisante (>80%) en utilisant le contenu textuel et des techniques de machine learning classiques. L'approche par régression logistique offre des résultats encourageants tout en restant simple et interprétable.
 
-Perspectives d'amélioration: 
-Pondération TF-IDF au lieu de fréquences simples
-Modèles plus avancés : Random Forest, XGBoost, réseaux de neurones
-Support multilingue : adaptation pour le français
-Features supplémentaires : analyse de sentiment, longueur des avis, métadonnées
+---
 
+## Limites et perspectives
+
+### Limites actuelles
+- Modèle basique (régression logistique uniquement)
+- Dataset en anglais uniquement
+- Features limitées (fréquences de mots simples)
+
+### Perspectives d'amélioration
+- Pondération **TF-IDF** pour une meilleure représentation textuelle
+- Modèles plus avancés (Random Forest, réseaux de neurones)
+- Support multilingue (adaptation pour le français)
+- Ajout de features (sentiment, longueur, métadonnées)
 
 ---
 
