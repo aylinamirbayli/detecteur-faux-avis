@@ -227,11 +227,11 @@ predire_avis(ex_faux, modele_logit, dtm2, seuil = 0.85)
 Le modèle renvoie une probabilité d'être faux (OR). Le seuil de classification détermine à partir de quelle probabilité un avis est considéré comme frauduleux.
 
 **Avec un seuil standard de 0.5 :**
-- L'avis authentique (CG) a une probabilité de 0,15 → classé comme **VRAI** ✓
-- L'avis frauduleux (OR) a une probabilité de 0,77 → classé comme **FAUX** ✓
+- L'avis authentique (CG) a une probabilité de 0,15 → classé comme **VRAI** 
+- L'avis frauduleux (OR) a une probabilité de 0,77 → classé comme **FAUX** 
 
 **Avec un seuil optimisé de 0.85 :**
-- L'avis authentique (CG) conserve sa probabilité de 0,15 → classé comme **VRAI** ✓
+- L'avis authentique (CG) conserve sa probabilité de 0,15 → classé comme **VRAI** 
 - L'avis frauduleux (OR) avec sa probabilité de 0,77 est maintenant classé comme **VRAI** (car 0,77 < 0,85)
 
 Cette différence illustre l'impact du choix du seuil : un seuil plus élevé réduit les faux positifs (avis authentiques classés à tort comme faux) au prix de laisser passer certains avis frauduleux dont la probabilité est modérée (entre 0,5 et 0,85).
