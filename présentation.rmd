@@ -1,7 +1,7 @@
 ---
 title: "Détecteur de faux avis en ligne"
 author: "AMIRBAYLI Jeyla, SEVIMLI Burak, AMIRBAYLI Aylin"
-date: "13 janvier 2026"
+date: "07/01/2026"
 output: ioslides_presentation
 editor_options: 
   markdown: 
