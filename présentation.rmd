@@ -2,11 +2,33 @@
 title: "Détecteur de faux avis en ligne"
 author: "AMIRBAYLI Jeyla, SEVIMLI Burak, AMIRBAYLI Aylin"
 date: "07/01/2026"
-output: ioslides_presentation
+output: 
+  ioslides_presentation:
+    widescreen: true
+    smaller: false
+    css: styles.css
 editor_options: 
   markdown: 
     wrap: 72
 ---
+
+## Introduction {.smaller}
+
+### Contexte
+
+Les avis en ligne influencent fortement les décisions d'achat des consommateurs. Cependant, la prolifération de **faux avis** représente un défi majeur pour la confiance numérique.
+
+### Notre solution
+
+Développement d'un **système automatisé de détection** utilisant :
+
+- Le traitement du langage naturel (NLP)
+- L'apprentissage automatique (régression logistique)
+- Une application interactive pour tester le modèle
+
+### Impact attendu
+
+Aider les plateformes et les consommateurs à identifier les avis frauduleux avec plus de **80% de précision**.
 
 ## Détection automatique de faux avis
 
@@ -47,7 +69,7 @@ authentique uniquement à partir de son texte ?**
 - Jeu de données **équilibré** entre avis authentiques et frauduleux
 - **Séparation** : 80% entraînement / 20% test
 
-## Exemples d'avis : authentique vs faux
+## Exemples d'avis : authentique vs faux {.smaller}
 
 ### Avis authentique (CG)
 
@@ -64,8 +86,7 @@ authentique uniquement à partir de son texte ?**
 - Ton excessivement positif
 - Peu ou pas de détails spécifiques
 
-> "This product is amazing and works perfectly.  
-> I highly recommend it to everyone!"
+> "This product is amazing and works perfectly. I highly recommend it to everyone!"
 
 ## Pipeline NLP : du texte aux données
 
