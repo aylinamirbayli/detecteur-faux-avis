@@ -1,210 +1,63 @@
----
-title: "analyse de donnée"
-author:
-  - "AMIRBAYLI Jeyla"
-  - "SEVIMLI Burak"
-  - "AMIRBAYLI Aylin"
-date: "2026-01-03"
-output: html_document
----
+# 2) DTM du nouveau texte avec dictionnaire de référence
+  dict_terms <- Terms(dtm_ref)
+  dtm_new <- DocumentTermMatrix(corp_new, control = list(dictionary = dict_terms))
 
-```{r setup, message=FALSE, warning=FALSE}
-library(tm)
-```
+  # Cas texte trop court / aucun terme reconnu
+  if (ncol(dtm_new) == 0) {
+    return(list(
+      proba_fake = NA_real_,
+      prediction = "Texte trop court ou pas assez de mots utiles"
+    ))
+  }
 
-## 1. Importation et exploration des données
+  # 3) Passage en data.frame
+  x_new <- as.data.frame(as.matrix(dtm_new), check.names = FALSE)
 
-```{r}
-data <- read.csv("data/fake reviews dataset.csv", stringsAsFactors=FALSE)
-```
+  # 4) Aligner exactement les colonnes attendues par le modèle
+  missing_cols <- setdiff(dict_terms, colnames(x_new))
+  if (length(missing_cols) > 0) {
+    x_new[missing_cols] <- 0
+  }
+  x_new <- x_new[, dict_terms, drop = FALSE]
 
-```{r}
-str(data)
-```
-
-```{r}
-table(data$label)
-```
-
-Le jeu de données est équilibré entre avis authentiques et avis frauduleux, ce qui permet un entraînement équitable du modèle.
-
-```{r}
-# Exemple d'un avis authentique
-data[data$label == "CG", "text_"][1]
-
-# Exemple d'un avis faux
-data[data$label == "OR", "text_"][1]
-```
-
-Les avis frauduleux ont tendance à utiliser un vocabulaire très positif, générique et peu informatif.
-
-## 2. Prétraitement du texte
-
-```{r}
-# Créer un corpus de texte
-corpus <- VCorpus(VectorSource(data$text_))
-
-# Nettoyage du texte
-corpus <- tm_map(corpus, content_transformer(tolower))
-corpus <- tm_map(corpus, removePunctuation)
-corpus <- tm_map(corpus, removeNumbers)
-corpus <- tm_map(corpus, removeWords, stopwords("english"))
-corpus <- tm_map(corpus, stripWhitespace)
-
-# Vérifier le résultat sur un texte
-as.character(corpus[[1]])
-```
-
-## 3. Création de la matrice documents-termes
-
-```{r}
-# Créer la matrice documents-termes
-dtm <- DocumentTermMatrix(corpus)
-
-# Aperçu
-dtm
-```
-
-```{r}
-# Enlever les mots trop rares (garder ceux présents dans au moins 1% des avis)
-dtm2 <- removeSparseTerms(dtm, 0.99)
-
-dtm2
-```
-
-## 4. Préparation des données pour la modélisation
-
-```{r}
-# Variable cible binaire
-y <- ifelse(data$label == "OR", 1, 0)
-
-# Vérification
-table(y)
-```
-
-```{r}
-# Conversion de la matrice documents-termes en data frame
-X <- as.data.frame(as.matrix(dtm2))
-
-# Vérification des dimensions
-dim(X)
-```
-
-## 5. Division en ensembles d'entraînement et de test
-
-```{r}
-set.seed(123) 
-# pour la reproductibilité
-
-n <- nrow(X)
-train_index <- sample(1:n, size = 0.8 * n)
-
-X_train <- X[train_index, ]
-X_test  <- X[-train_index, ]
-
-y_train <- y[train_index]
-y_test  <- y[-train_index]
-
-# Vérification
-dim(X_train)
-dim(X_test)
-```
-
-## 6. Entraînement du modèle de régression logistique
-
-```{r}
-# Modèle de régression logistique
-modele_logit <- glm(
-  y_train ~ .,
-  data = X_train,
-  family = binomial
-)
-```
-
-## 7. Prédiction et évaluation du modèle
-
-```{r}
-proba_test <- predict(modele_logit, X_test, type = "response")
-y_pred <- ifelse(proba_test > 0.5, 1, 0)
-```
-
-```{r}
-table(Prediction = y_pred, Reel = y_test)
-```
-
-```{r}
-mean(y_pred == y_test)
-```
-
-Le modèle de régression logistique permet de détecter les faux avis avec une accuracy de 81,6 %. Il identifie correctement une grande partie des avis frauduleux tout en maintenant une bonne capacité à reconnaître les avis authentiques.
-
-### 7.1 Métriques de performance détaillées
-
-```{r}
-cm <- table(Prediction = y_pred, Reel = y_test)
-
-TP <- cm["1","1"]
-TN <- cm["0","0"]
-FP <- cm["1","0"]
-FN <- cm["0","1"]
-
-precision <- TP / (TP + FP)
-recall    <- TP / (TP + FN)
-f1        <- 2 * precision * recall / (precision + recall)
-accuracy  <- mean(y_pred == y_test)
-
-data.frame(accuracy, precision, recall, f1)
-```
-
-Sur l'échantillon test, la régression logistique atteint une accuracy de 0,816, ce qui signifie que 81,6 % des avis sont correctement classés (vrai vs faux). La precision = 0,806 indique que, parmi les avis prédits comme faux, environ 80,6 % sont réellement faux (donc ~19,4 % sont des faux positifs). Le recall = 0,830 montre que le modèle détecte environ 83 % des faux avis (donc ~17 % échappent à la détection). Le F1-score = 0,818 confirme un bon compromis entre la capacité à repérer les avis frauduleux et la limitation des erreurs de classification.
-
-## 8. Fonction de prédiction pour de nouveaux avis
-
-```{r}
-# --- Fonction de prédiction (option A : logit) ---
-predire_avis <- function(texte, modele, dtm_ref, seuil = 0.7) {
-
-  # 1) Nettoyage texte (même pipeline que l'entraînement)
-  corp_new <- VCorpus(VectorSource(texte))
-  corp_new <- tm_map(corp_new, content_transformer(tolower))
-  corp_new <- tm_map(corp_new, removePunctuation)
-  corp_new <- tm_map(corp_new, removeNumbers)
-  corp_new <- tm_map(corp_new, removeWords, stopwords("english"))
-  corp_new <- tm_map(corp_new, stripWhitespace)
-
-  # 2) DTM du nouveau texte avec EXACTEMENT le même vocabulaire que l'entraînement
-  dtm_new <- DocumentTermMatrix(corp_new, control = list(dictionary = Terms(dtm_ref)))
-
-  # 3) Passage en data.frame (mêmes colonnes)
-  x_new <- as.data.frame(as.matrix(dtm_new))
-
-  # 4) Proba + classe
+  # 5) Proba + classe
   proba_fake <- predict(modele, newdata = x_new, type = "response")
+  proba_fake <- as.numeric(proba_fake)
+
   classe <- ifelse(proba_fake >= seuil, 1, 0)
 
   list(
-    proba_fake = as.numeric(proba_fake),
+    proba_fake = proba_fake,
     prediction = ifelse(classe == 1, "FAUX (OR)", "VRAI (CG)")
   )
 }
-```
 
 ### 8.1 Test de la fonction de prédiction
-
-```{r}
 set.seed(1)
 ex_vrai <- data[data$label == "CG", "text_"][1]
 ex_faux <- data[data$label == "OR", "text_"][1]
 
-predire_avis(ex_vrai, modele_logit, dtm2)
-predire_avis(ex_faux, modele_logit, dtm2)
-```
+cat("=== Test avec seuil standard (0.5) ===\n")
+predire_avis(ex_vrai, modele_logit, dtm2, seuil = 0.5)
+predire_avis(ex_faux, modele_logit, dtm2, seuil = 0.5)
 
-Le modèle renvoie une probabilité d'être faux (OR). Si cette probabilité dépasse 0,5, on classe l'avis comme faux ; sinon, on le classe comme authentique. Ici, l'avis CG a une probabilité faible (0,15) donc il est classé authentique, alors que l'avis OR a une probabilité élevée (0,77) donc il est classé faux.
+cat("\n=== Test avec seuil optimisé (0.85) ===\n")
+predire_avis(ex_vrai, modele_logit, dtm2, seuil = 0.85)
+predire_avis(ex_faux, modele_logit, dtm2, seuil = 0.85)
+
+Le modèle renvoie une probabilité d'être faux (OR). Le seuil de classification détermine à partir de quelle probabilité un avis est considéré comme frauduleux.
+
+Avec un seuil standard de 0.5 :
+- L'avis authentique (CG) a une probabilité de 0,15 → classé comme VRAI ✓
+- L'avis frauduleux (OR) a une probabilité de 0,77 → classé comme FAUX ✓
+
+Avec un seuil optimisé de 0.85 :
+- L'avis authentique (CG) conserve sa probabilité de 0,15 → classé comme VRAI ✓
+- L'avis frauduleux (OR) avec sa probabilité de 0,77 est maintenant classé comme VRAI (car 0,77 < 0,85)
+
+Cette différence illustre l'impact du choix du seuil : un seuil plus élevé réduit les faux positifs (avis authentiques classés à tort comme faux) au prix de laisser passer certains avis frauduleux dont la probabilité est modérée (entre 0,5 et 0,85).
 
 ## 9. Interprétation du modèle : analyse des coefficients
-
-```{r}
 # Coefficients du modèle
 coef_mod <- coef(modele_logit)
 
@@ -219,7 +72,6 @@ top_vrai <- sort(coef_mod, decreasing = FALSE)[1:20]
 
 top_fake
 top_vrai
-```
 
 Les coefficients montrent quels mots poussent le modèle vers FAUX (OR) ou VRAI (CG) :
 coefficients positifs → augmentent la probabilité d'un avis faux (mots plutôt vagues/nuancés comme maybe, however, instead).
@@ -227,11 +79,8 @@ coefficients négatifs → augmentent la probabilité d'un avis authentique (mot
 Donc le modèle distingue surtout vocabulaire générique vs détails spécifiques.
 
 ### 9.1 Test sur un nouvel avis
-
-```{r}
 texte_test <- "This product is amazing, I recommend it to everyone!!!"
 predire_avis(texte_test, modele_logit, dtm2)
-```
 
 ## 10. Conclusion
 
@@ -241,17 +90,18 @@ Dans ce projet, nous avons cherché à déterminer s'il est possible de détecte
 
 Les résultats montrent que le modèle obtient de bonnes performances (accuracy ≈ 82 %, F1-score ≈ 0,82), ce qui indique qu'une grande partie des avis peut être correctement classée uniquement à partir du texte.
 
+
 L'analyse des coefficients met en évidence que les avis faux utilisent davantage un vocabulaire vague et générique, tandis que les avis authentiques contiennent plus de détails concrets liés au produit.
 
 ### Optimisation du seuil de décision
 
-Bien que le seuil standard soit de 0.5 pour l'évaluation du modèle, nous avons choisi d'utiliser un seuil de 0.7 dans l'application finale pour les raisons suivantes :
+Bien que le seuil standard soit de 0.5 pour l'évaluation du modèle, nous avons choisi d'utiliser un seuil de 0.85 dans l'application finale pour les raisons suivantes :
 
-1. **Réduction des faux positifs** : Il est préférable de laisser passer quelques avis frauduleux plutôt que de sanctionner à tort des avis authentiques, ce qui aurait un impact négatif sur la confiance des utilisateurs et pourrait nuire injustement à des clients honnêtes.
+1. Réduction des faux positifs : Il est préférable de laisser passer quelques avis frauduleux plutôt que de sanctionner à tort des avis authentiques, ce qui aurait un impact négatif sur la confiance des utilisateurs et pourrait nuire injustement à des clients honnêtes.
 
-2. **Compromis précision/rappel** : Un seuil plus élevé améliore la précision au détriment du rappel, ce qui est approprié dans un contexte de modération d'avis où la priorité est d'éviter les erreurs de classification d'avis légitimes.
+2. Compromis précision/rappel : Un seuil plus élevé améliore la précision au détriment du rappel, ce qui est approprié dans un contexte de modération d'avis où la priorité est d'éviter les erreurs de classification d'avis légitimes.
 
-3. **Flexibilité** : L'application Shiny permet à l'utilisateur d'ajuster le seuil selon ses besoins via un curseur interactif, offrant ainsi une solution adaptable à différents contextes d'utilisation.
+3. Flexibilité : L'application Shiny permet à l'utilisateur d'ajuster le seuil selon ses besoins via un curseur interactif, offrant ainsi une solution adaptable à différents contextes d'utilisation.
 
 Ce choix illustre l'importance d'adapter les modèles de machine learning aux contraintes métier et aux coûts relatifs des différents types d'erreurs, plutôt que de se limiter aux valeurs par défaut.
 
@@ -260,8 +110,6 @@ Ce choix illustre l'importance d'adapter les modèles de machine learning aux co
 Ce projet illustre ainsi comment des méthodes simples de NLP peuvent contribuer à la détection automatique de faux avis avec des performances satisfaisantes. Plusieurs améliorations pourraient être envisagées pour renforcer le modèle : l'utilisation de pondérations TF-IDF, l'exploration de modèles plus complexes (Random Forest, réseaux de neurones), l'ajout de features textuelles supplémentaires (sentiment, longueur), et l'adaptation du système à d'autres langues comme le français.
 
 ## 11. Sauvegarde des modèles
-
-```{r}
 # Créer le dossier results s'il n'existe pas
 if (!dir.exists("results")) {
   dir.create("results")
@@ -273,4 +121,3 @@ saveRDS(modele_logit, "results/modele_logit.rds")
 saveRDS(dtm2, "results/dtm_ref.rds")
 
 print("Modèles sauvegardés avec succès !")
-```
