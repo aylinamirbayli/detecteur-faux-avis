@@ -100,11 +100,11 @@ authentique uniquement à partir de son texte ?**
 
 ## Optimisation du seuil de décision
 
-### Pourquoi 0.7 au lieu de 0.5 ?
+### Pourquoi 0.85 au lieu de 0.5 ?
 
 **Choix stratégique :**  
 - Seuil standard = 0.5  
-- Seuil optimisé = **0.7** dans l'application
+- Seuil optimisé = **0.85** dans l'application
 
 **Justifications :**  
 - Réduction des **faux positifs** (avis authentiques classés faux)
