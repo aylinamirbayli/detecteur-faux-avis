@@ -67,9 +67,9 @@ Le jeu de données est équilibré (50% CG / 50% OR).
 
 ### Optimisation du seuil
 
-Dans l'application finale, nous utilisons un **seuil de 0.7** (au lieu de 0.5) pour :
+Dans l'application finale, nous utilisons un **seuil de 0.85** (au lieu de 0.5) pour :
 - Réduire les faux positifs (éviter de pénaliser des avis authentiques)
-- Améliorer la précision
+- Améliorer la précision au détriment du rappel
 - Offrir une flexibilité via un curseur interactif
 
 ---
