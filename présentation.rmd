@@ -28,7 +28,7 @@ Développement d'un **système automatisé de détection** utilisant :
 
 ### Impact attendu
 
-Aider les plateformes et les consommateurs à identifier les avis frauduleux avec plus de **80% de précision**.
+Aider les plateformes et les consommateurs à identifier les avis frauduleux avec plus de **80% d'accuracy**.
 
 ## Détection automatique de faux avis
 
@@ -36,8 +36,8 @@ Aider les plateformes et les consommateurs à identifier les avis frauduleux ave
 
 **Objectif :**  
 Classer automatiquement des avis en ligne en deux catégories :  
-- Avis authentiques (CG)  
-- Avis frauduleux (OR)
+- Avis authentiques (**OR**)  
+- Avis frauduleux / générés (**CG**)
 
 **Outils :** R, R Markdown, NLP (tm), régression logistique
 
@@ -62,7 +62,7 @@ authentique uniquement à partir de son texte ?**
 ### Variables principales
 
 - `text_` : contenu textuel de l'avis
-- `label` : `CG` = authentique / `OR` = faux
+- `label` : `OR` = authentique / `CG` = faux (Computer Generated)
 
 ### Caractéristiques
 
@@ -71,7 +71,7 @@ authentique uniquement à partir de son texte ?**
 
 ## Exemples d'avis : authentique vs faux {.smaller}
 
-### Avis authentique (CG)
+### Avis authentique (OR)
 
 - Contient des **détails concrets** sur le produit
 - Mentionne l'utilisation réelle et l'expérience personnelle
@@ -80,13 +80,13 @@ authentique uniquement à partir de son texte ?**
 > "The instructions were clear and assembly took about 30 minutes.  
 > The plastic feels sturdy but the screws could be better quality."
 
-### Avis frauduleux (OR)
+### Avis frauduleux / généré (CG)
 
 - Langage **très général** et peu descriptif
 - Ton excessivement positif
 - Peu ou pas de détails spécifiques
 
-> "This product is amazing and works perfectly. I highly recommend it to everyone!"
+> "Amazing! Strong, beautiful, and incredibly comfortable. I’m in love with it!"
 
 ## Pipeline NLP : du texte aux données
 
@@ -102,7 +102,7 @@ authentique uniquement à partir de son texte ?**
 - **Document-Term Matrix (DTM)** : lignes = avis, colonnes = mots
 - Réduction avec `removeSparseTerms()` → **444 mots** conservés
 - Conversion en data.frame pour la modélisation
-- Variable cible : `1` = frauduleux (OR), `0` = authentique (CG)
+- Variable cible : `1` = frauduleux / généré (**CG**), `0` = authentique (**OR**)
 
 ## Modèle et résultats
 
@@ -115,17 +115,17 @@ authentique uniquement à partir de son texte ?**
 ### Performances sur l'échantillon de test
 
 - **Accuracy** : 81,6%
-- **Precision** : 0,806
-- **Recall** : 0,830
-- **F1-score** : 0,818
+- **Precision** : 0,827
+- **Recall** : 0,803
+- **F1-score** : 0,815
 
 ## Optimisation du seuil de décision
 
-### Pourquoi 0.85 au lieu de 0.5 ?
+### Pourquoi 0.65 au lieu de 0.5 ?
 
 **Choix stratégique :**  
 - Seuil standard = 0.5  
-- Seuil optimisé = **0.85** dans l'application
+- Seuil optimisé = **0.65** dans l'application
 
 **Justifications :**  
 - Réduction des **faux positifs** (avis authentiques classés faux)
@@ -159,7 +159,7 @@ authentique uniquement à partir de son texte ?**
 
 ### Bilan
 
-- Détection automatique de faux avis **possible** avec >80% de précision
+- Détection automatique de faux avis **possible** avec >80% d'accuracy
 - NLP + régression logistique = approche **simple mais efficace**
 - **Application Shiny développée** et fonctionnelle
 - Code **reproductible** disponible sur GitHub
