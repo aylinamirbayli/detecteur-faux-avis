@@ -1,5 +1,5 @@
 ---
-title: "analyse de donnée"
+title: "analyse de données"
 author:
   - "AMIRBAYLI Jeyla"
   - "SEVIMLI Burak"
@@ -26,17 +26,17 @@ str(data)
 table(data$label)
 ```
 
-Le jeu de données est équilibré entre avis authentiques et avis frauduleux, ce qui permet un entraînement équitable du modèle.
+Le jeu de données est équilibré entre avis authentiques (OR) et avis faux/générés (CG), ce qui permet un entraînement équitable du modèle.
 
 ```{r}
-# Exemple d'un avis authentique
-data[data$label == "CG", "text_"][1]
-
-# Exemple d'un avis faux
+# Exemple d'un avis authentique (OR = Original Review = vrai avis)
 data[data$label == "OR", "text_"][1]
+
+# Exemple d'un avis faux / généré (CG = Computer Generated = faux avis)
+data[data$label == "CG", "text_"][1]
 ```
 
-Les avis frauduleux ont tendance à utiliser un vocabulaire très positif, générique et peu informatif.
+Les avis faux (CG) ont souvent un vocabulaire très positif, générique et peu informatif, tandis que les avis authentiques (OR) contiennent plus fréquemment des détails concrets (usage, défauts, contexte).
 
 ## 2. Prétraitement du texte
 
@@ -76,7 +76,7 @@ dtm2
 
 ```{r}
 # Variable cible binaire
-y <- ifelse(data$label == "OR", 1, 0)
+y <- ifelse(data$label == "CG", 1, 0)
 
 # Vérification
 table(y)
@@ -156,14 +156,17 @@ accuracy  <- mean(y_pred == y_test)
 data.frame(accuracy, precision, recall, f1)
 ```
 
-Sur l'échantillon test, la régression logistique atteint une accuracy de 0,816, ce qui signifie que 81,6 % des avis sont correctement classés (vrai vs faux). La precision = 0,806 indique que, parmi les avis prédits comme faux, environ 80,6 % sont réellement faux (donc ~19,4 % sont des faux positifs). Le recall = 0,830 montre que le modèle détecte environ 83 % des faux avis (donc ~17 % échappent à la détection). Le F1-score = 0,818 confirme un bon compromis entre la capacité à repérer les avis frauduleux et la limitation des erreurs de classification.
+Sur l'échantillon test, la régression logistique atteint une accuracy de 0,816, ce qui signifie que 81,6 % des avis sont correctement classés (avis authentiques vs avis faux).
+La precision = 0,827 indique que, parmi les avis prédits comme faux (CG), 82,7 % sont réellement des avis faux, ce qui correspond à environ 17,3 % de faux positifs (avis authentiques classés à tort comme frauduleux).
+Le recall = 0,803 montre que le modèle détecte environ 80,3 % des avis faux, tandis qu'environ 19,7 % des avis frauduleux ne sont pas détectés.
+Enfin, le F1-score = 0,815 confirme un bon compromis entre la capacité du modèle à identifier les avis frauduleux et la limitation des erreurs de classification.
 
 ## 8. Fonction de prédiction pour de nouveaux avis
 
 ### --- Fonction de prédiction robuste ---
 ```{r}
 # --- Fonction de prédiction robuste ---
-predire_avis <- function(texte, modele, dtm_ref, seuil = 0.85) {
+predire_avis <- function(texte, modele, dtm_ref, seuil = 0.65) {
 
   # 1) Nettoyage texte (même pipeline que l'entraînement)
   corp_new <- VCorpus(VectorSource(texte))
@@ -203,7 +206,7 @@ predire_avis <- function(texte, modele, dtm_ref, seuil = 0.85) {
 
   list(
     proba_fake = proba_fake,
-    prediction = ifelse(classe == 1, "FAUX (OR)", "VRAI (CG)")
+    prediction = ifelse(classe == 1, "FAUX (CG)", "VRAI (OR)")
   )
 }
 ```
@@ -212,29 +215,30 @@ predire_avis <- function(texte, modele, dtm_ref, seuil = 0.85) {
 
 ```{r}
 set.seed(1)
-ex_vrai <- data[data$label == "CG", "text_"][1]
-ex_faux <- data[data$label == "OR", "text_"][1]
+ex_vrai <- data[data$label == "OR", "text_"][1]
+ex_faux <- data[data$label == "CG", "text_"][1]
 
 cat("=== Test avec seuil standard (0.5) ===\n")
 predire_avis(ex_vrai, modele_logit, dtm2, seuil = 0.5)
 predire_avis(ex_faux, modele_logit, dtm2, seuil = 0.5)
 
-cat("\n=== Test avec seuil optimisé (0.85) ===\n")
-predire_avis(ex_vrai, modele_logit, dtm2, seuil = 0.85)
-predire_avis(ex_faux, modele_logit, dtm2, seuil = 0.85)
+cat("\n=== Test avec seuil optimisé (0.65) ===\n")
+predire_avis(ex_vrai, modele_logit, dtm2, seuil = 0.65)
+predire_avis(ex_faux, modele_logit, dtm2, seuil = 0.65)
 ```
 
-Le modèle renvoie une probabilité d'être faux (OR). Le seuil de classification détermine à partir de quelle probabilité un avis est considéré comme frauduleux.
+Le modèle renvoie une probabilité d'être faux (CG). Le seuil de classification détermine à partir de quelle probabilité un avis est considéré comme frauduleux.
 
-**Avec un seuil standard de 0.5 :**
-- L'avis authentique (CG) a une probabilité de 0,15 → classé comme **VRAI** 
-- L'avis frauduleux (OR) a une probabilité de 0,77 → classé comme **FAUX** 
+Avec un seuil standard de 0.5 :
+- L'avis authentique (OR) a une probabilité de 0.23 → classé comme VRAI (OR)
+- L'avis faux (CG) a une probabilité de 0.85 → classé comme FAUX (CG)
 
-**Avec un seuil optimisé de 0.85 :**
-- L'avis authentique (CG) conserve sa probabilité de 0,15 → classé comme **VRAI** 
-- L'avis frauduleux (OR) avec sa probabilité de 0,77 est maintenant classé comme **VRAI** (car 0,77 < 0,85)
+Avec un seuil optimisé de 0.65 :
+- L'avis authentique (OR) conserve sa probabilité de 0.23 → classé comme VRAI (OR)
+- L'avis faux (CG), avec une probabilité de 0.85 supérieure au seuil, est correctement classé comme FAUX (CG)
 
-Cette différence illustre l'impact du choix du seuil : un seuil plus élevé réduit les faux positifs (avis authentiques classés à tort comme faux) au prix de laisser passer certains avis frauduleux dont la probabilité est modérée (entre 0,5 et 0,85).
+Cette différence illustre l'impact du choix du seuil : un seuil plus élevé réduit les faux positifs (avis authentiques classés à tort comme faux) tout en maintenant une bonne détection des avis frauduleux dont la probabilité est suffisamment élevée.
+
 
 ## 9. Interprétation du modèle : analyse des coefficients
 
@@ -245,20 +249,20 @@ coef_mod <- coef(modele_logit)
 # On enlève l'intercept
 coef_mod <- coef_mod[names(coef_mod) != "(Intercept)"]
 
-# Top mots qui augmentent la proba d'être FAUX (OR)
+# Top mots qui augmentent la proba d'être FAUX (CG)
 top_fake <- sort(coef_mod, decreasing = TRUE)[1:20]
 
-# Top mots qui augmentent la proba d'être VRAI (CG) (coeff négatifs)
+# Top mots qui augmentent la proba d'être VRAI (OR) (coeff négatifs)
 top_vrai <- sort(coef_mod, decreasing = FALSE)[1:20]
 
 top_fake
 top_vrai
 ```
 
-Les coefficients montrent quels mots poussent le modèle vers FAUX (OR) ou VRAI (CG) :
-coefficients positifs → augmentent la probabilité d'un avis faux (mots plutôt vagues/nuancés comme maybe, however, instead).
-coefficients négatifs → augmentent la probabilité d'un avis authentique (mots plus concrets liés au produit comme sturdy, instructions, plastic).
-Donc le modèle distingue surtout vocabulaire générique vs détails spécifiques.
+Les coefficients montrent quels mots poussent le modèle vers FAUX (CG) ou VRAI (OR) :
+coefficients positifs → augmentent la probabilité d'un avis faux (CG) ;
+coefficients négatifs → augmentent la probabilité d'un avis authentique (OR).
+Dans nos résultats, les mots les plus associés à CG (coefficients positifs) incluent par exemple plastic, instructions, sturdy, tandis que des termes plus "discursifs/nuancés" comme although, instead, maybe apparaissent plutôt du côté OR (coefficients négatifs).
 
 ### 9.1 Test sur un nouvel avis
 
@@ -271,15 +275,16 @@ predire_avis(texte_test, modele_logit, dtm2)
 
 Dans ce projet, nous avons cherché à déterminer s'il est possible de détecter automatiquement les avis faux à partir du contenu textuel.
 
-À l'aide de techniques de traitement automatique du langage (NLP) et d'un modèle de régression logistique, nous avons transformé les avis en variables numériques (matrice documents-termes), puis entraîné un classifieur capable de distinguer avis authentiques (CG) et avis faux (OR).
+À l'aide de techniques de traitement automatique du langage (NLP) et d'un modèle de régression logistique, nous avons transformé les avis en variables numériques (matrice documents-termes), puis entraîné un classifieur capable de distinguer avis authentiques (OR) et avis faux (CG).
 
 Les résultats montrent que le modèle obtient de bonnes performances (accuracy ≈ 82 %, F1-score ≈ 0,82), ce qui indique qu'une grande partie des avis peut être correctement classée uniquement à partir du texte.
 
-L'analyse des coefficients met en évidence que les avis faux utilisent davantage un vocabulaire vague et générique, tandis que les avis authentiques contiennent plus de détails concrets liés au produit.
+L'analyse des coefficients met en évidence que certains avis faux (CG) peuvent contenir des termes concrets liés au produit, probablement dans le but de paraître crédibles, tandis que les avis authentiques (OR) présentent davantage de formulations nuancées ou discursives. Cette observation souligne que la distinction entre avis vrais et faux ne repose pas uniquement sur le caractère concret ou vague du vocabulaire, mais sur des combinaisons de mots plus complexes captées par le modèle statistique.
+
 
 ### Optimisation du seuil de décision
 
-Bien que le seuil standard soit de 0.5 pour l'évaluation du modèle, nous avons choisi d'utiliser un seuil de 0.85 dans l'application finale pour les raisons suivantes :
+Bien que le seuil standard soit de 0.5 pour l'évaluation du modèle, nous avons choisi d'utiliser un seuil de 0.65 dans l'application finale pour les raisons suivantes :
 
 1. **Réduction des faux positifs** : Il est préférable de laisser passer quelques avis frauduleux plutôt que de sanctionner à tort des avis authentiques, ce qui aurait un impact négatif sur la confiance des utilisateurs et pourrait nuire injustement à des clients honnêtes.
 
