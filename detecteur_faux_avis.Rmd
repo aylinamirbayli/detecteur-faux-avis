@@ -237,8 +237,7 @@ Avec un seuil optimisé de 0.65 :
 - L'avis authentique (OR) conserve sa probabilité de 0.23 → classé comme VRAI (OR)
 - L'avis faux (CG), avec une probabilité de 0.85 supérieure au seuil, est correctement classé comme FAUX (CG)
 
-Cette différence illustre l'impact du choix du seuil : un seuil plus élevé réduit les faux positifs (avis authentiques classés à tort comme faux) tout en maintenant une bonne détection des avis frauduleux dont la probabilité est suffisamment élevée.
-
+Bien que ces exemples extrêmes (0.23 et 0.85) donnent le même résultat avec les deux seuils, l'impact réel se manifeste sur les avis avec probabilités intermédiaires (entre 0.5 et 0.65). C'est dans cette zone que le seuil 0.65 protège efficacement les avis authentiques des faux positifs.
 
 ## 9. Interprétation du modèle : analyse des coefficients
 
