@@ -1,20 +1,27 @@
 # Détecteur de faux avis en ligne (Fake Reviews Detection)
 
-Outil de détection automatique des **avis faux vs authentiques** à partir du texte, basé sur des techniques de **traitement du langage naturel (NLP)** et de **régression logistique** en R.
+Outil de détection automatique des **avis faux vs authentiques** à partir du texte,
+basé sur des techniques de **traitement du langage naturel (NLP)** et de
+**régression logistique** en R.
 
 ---
 
 ## Contexte et motivation
 
-Les avis en ligne influencent fortement les décisions d'achat des consommateurs. Cependant, de nombreux avis peuvent être falsifiés, ce qui réduit la confiance des utilisateurs.
+Les avis en ligne influencent fortement les décisions d'achat des consommateurs.
+Cependant, de nombreux avis peuvent être falsifiés, ce qui réduit la confiance
+des utilisateurs.
 
-Ce projet vise à montrer comment des **méthodes statistiques et de data science** peuvent être utilisées pour **détecter automatiquement les avis faux** à partir de leur contenu textuel.
+Ce projet vise à montrer comment des **méthodes statistiques et de data science**
+peuvent être utilisées pour **détecter automatiquement les avis faux** à partir
+de leur contenu textuel.
 
 ---
 
 ## Problématique
 
-**Peut-on prédire automatiquement si un avis en ligne est faux ou authentique uniquement à partir de son texte ?**
+**Peut-on prédire automatiquement si un avis en ligne est faux ou authentique
+uniquement à partir de son texte ?**
 
 ---
 
@@ -36,10 +43,12 @@ Ce projet vise à montrer comment des **méthodes statistiques et de data scienc
 **Variables principales** :
 - `category` : catégorie du produit  
 - `rating` : note de l'avis  
-- `label` : `CG` (authentique) ou `OR` (faux)  
-- `text_` : contenu textuel de l'avis
+- `label` :  
+  - `OR` = **avis authentique (Original Review)**  
+  - `CG` = **avis faux / généré (Computer Generated)**  
+- `text_` : contenu textuel de l'avis  
 
-Le jeu de données est équilibré (50% CG / 50% OR).
+Le jeu de données est **équilibré** (50 % OR / 50 % CG).
 
 ---
 
@@ -58,28 +67,47 @@ Le jeu de données est équilibré (50% CG / 50% OR).
 
 ### Performances (seuil = 0.5)
 
-| Métrique | Valeur |
+| Métrique  | Valeur |
 |----------|--------|
-| Accuracy | 81.6% |
-| Precision | 80.6% |
-| Recall | 83.0% |
-| F1-score | 81.8% |
+| Accuracy | 81.6 % |
+| Precision | 82.7 % |
+| Recall | 80.3 % |
+| F1-score | 81.5 % |
 
-### Optimisation du seuil
-
-Dans l'application finale, nous utilisons un **seuil de 0.85** (au lieu de 0.5) pour :
-- Réduire les faux positifs (éviter de pénaliser des avis authentiques)
-- Améliorer la précision au détriment du rappel
-- Offrir une flexibilité via un curseur interactif
+Ces résultats montrent que le modèle parvient à distinguer efficacement
+les avis authentiques des avis frauduleux uniquement à partir du texte.
 
 ---
 
-## Interprétation
+### Optimisation du seuil
 
-**Avis faux** : vocabulaire vague et générique (*maybe, however, instead*)  
-**Avis authentiques** : détails concrets sur le produit (*sturdy, instructions, plastic*)
+Dans l'application finale, nous utilisons un **seuil de 0.65** (au lieu de 0.5) afin de :
 
-Le modèle distingue le vocabulaire générique des détails spécifiques.
+- Réduire les **faux positifs** (avis authentiques classés à tort comme faux)
+- Trouver un **meilleur compromis précision / rappel**
+- Permettre à l'utilisateur d'ajuster le seuil via un **curseur interactif**
+
+Un seuil plus élevé diminue les erreurs coûteuses pour l'utilisateur, tout en
+maintenant des performances globales satisfaisantes.
+
+---
+
+## Interprétation du modèle
+
+Les coefficients de la régression logistique indiquent quels mots influencent la
+prédiction :
+
+- **Coefficients positifs → avis faux (CG)**  
+  Certains mots concrets liés au produit (*plastic, instructions, sturdy*) peuvent
+  être utilisés dans des avis générés afin de paraître crédibles.
+
+- **Coefficients négatifs → avis authentiques (OR)**  
+  Des termes plus nuancés ou discursifs (*although, instead, maybe*) apparaissent
+  davantage dans des avis réellement rédigés par des utilisateurs.
+
+Cette observation montre que la distinction entre avis vrais et faux ne repose
+pas uniquement sur le caractère vague ou concret du vocabulaire, mais sur des
+**combinaisons de mots** captées par le modèle.
 
 ---
 
